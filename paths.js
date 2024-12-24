@@ -6,7 +6,7 @@ const USERNAME_INPUT = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div
 const USERNAME_NEXT_BTN = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div/div/div/button[2]/div";
 const PASS_INPUT = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div/div[3]/div/label/div/div[2]/div[1]/input";
 const PASS_NEXT_BTN = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div[1]/div/div/button";
-const WHATS_HAPPENING = "/html/body/div[1]/div/div/div[2]/main/div/div/div/div[2]/div/div[2]/div/div/div/div[4]/section/div/div/div[2]/div/div/h2/div[2]/span";
+const SHOW_MORE_TRENDS_BTN = "/html/body/div[1]/div/div/div[2]/main/div/div/div/div[2]/div/div[2]/div/div/div/div[4]/section/div/div/div[7]/div/a/div/span";
 
 
 
@@ -17,5 +17,5 @@ module.exports = {
     USERNAME_NEXT_BTN,
     PASS_INPUT,
     PASS_NEXT_BTN,
-    WHATS_HAPPENING
+    SHOW_MORE_TRENDS_BTN,
 }

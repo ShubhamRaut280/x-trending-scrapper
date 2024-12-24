@@ -1,8 +1,9 @@
 require('dotenv').config();
-const webdriver = require('selenium-webdriver'),
-    By = webdriver.By;
+const { Builder, By, Key, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const { promisify } = require('util');
+const sleep = promisify(setTimeout);
 
-const { configDotenv } = require('dotenv');
 const {
     INFO_BANNER_BTN,
     LOGIN_BTN,
@@ -10,49 +11,73 @@ const {
     USERNAME_NEXT_BTN,
     PASS_INPUT,
     PASS_NEXT_BTN,
-    WHATS_HAPPENING
+    SHOW_MORE_TRENDS_BTN
 } = require('./paths');
 
-
-var driver = new webdriver.Builder()
-    .forBrowser('chrome')
-    .build();
-
-driver.manage().window().maximize();    
-
-
-
 async function init() {
+    var options = new chrome.Options();
+    options.addArguments('--disable-blink-features=AutomationControlled');
+    options.addArguments('start-maximized'); 
+    options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'); // Set user-agent
+
+    var driver = new Builder()
+        .forBrowser('chrome')
+        .setChromeOptions(options)
+        .build();
+
     await driver.get("https://x.com/home");
+
+    return driver;
 }
 
-async function Login() {
+async function Login(driver) {
+    await sleep(Math.random() * 3000 + 2000); 
 
-    const loginbtn = await driver.wait(webdriver.until.elementLocated(By.xpath(LOGIN_BTN), 5000));
-    loginbtn.click();
+    const loginbtn = await driver.wait(until.elementLocated(By.xpath(LOGIN_BTN), 10000));
+    await loginbtn.click();
 
-    const usernameInput = await driver.wait(webdriver.until.elementLocated(By.xpath(USERNAME_INPUT), 5000));
-    usernameInput.sendKeys(process.env.X_USERNAME);
+    await sleep(Math.random() * 3000 + 2000); 
 
-    const usernameNextBtn = await driver.wait(webdriver.until.elementLocated(By.xpath(USERNAME_NEXT_BTN), 5000));
-    usernameNextBtn.click();
+    const usernameInput = await driver.wait(until.elementLocated(By.xpath(USERNAME_INPUT), 10000));
+    await usernameInput.sendKeys(process.env.X_USERNAME);
 
-    const passInput = await driver.wait(webdriver.until.elementLocated(By.xpath(PASS_INPUT), 5000));
-    passInput.sendKeys(process.env.X_PASSWORD);
+    await sleep(Math.random() * 3000 + 2000); 
 
-    const passNextBtn = await driver.wait(webdriver.until.elementLocated(By.xpath(PASS_NEXT_BTN), 5000));
-    passNextBtn.click();
+    const usernameNextBtn = await driver.wait(until.elementLocated(By.xpath(USERNAME_NEXT_BTN), 10000));
+    await usernameNextBtn.click();
 
-    const whatsHappening = await driver.wait(webdriver.until.elementLocated(By.xpath(WHATS_HAPPENING), 5000));
-    whatsHappening.getText().then((text) => {
-        console.log(text);
-    });
+    await sleep(Math.random() * 3000 + 2000); 
 
+    const passInput = await driver.wait(until.elementLocated(By.xpath(PASS_INPUT), 10000));
+    await passInput.sendKeys(process.env.X_PASSWORD);
+
+    await sleep(Math.random() * 3000 + 2000); 
+
+    const passNextBtn = await driver.wait(until.elementLocated(By.xpath(PASS_NEXT_BTN), 10000));
+    await passNextBtn.click();
+
+    await sleep(Math.random() * 3000 + 2000); 
+}
+
+async function scrapTrends(driver){
+    const showmoreTrendsBtn = await driver.wait(until.elementLocated(By.xpath(SHOW_MORE_TRENDS_BTN), 10000));
+    await showmoreTrendsBtn.click();
+
+    await sleep(Math.random() * 3000 + 2000); 
+
+    for(let i = 1; i <= 5; i++){
+        const trendcard = `/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/section/div/div/div[${i}]/div/div/div/div/div[2]/span/span`;
+        const trend = await driver.wait(until.elementLocated(By.xpath(trendcard), 10000));
+        console.log(await trend.getText());
+
+        await sleep(Math.random() * 3000 + 2000);
+        console.log(`sleep time : ${Math.random() * 3000 + 2000}`)
+    }
 
 }
+
 (async () => {
-    // await init();
-    // await Login();
+    const driver = await init();
+    await Login(driver);
+    await scrapTrends(driver);
 })();
-
-

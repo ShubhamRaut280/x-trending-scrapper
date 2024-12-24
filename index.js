@@ -1,8 +1,16 @@
 require('dotenv').config();
+const express = require('express');
+const app = express();
+const path = require('path')
+
 const { Builder, By, Key, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const { promisify } = require('util');
 const sleep = promisify(setTimeout);
+
+app.set('view engine', 'ejs');
+app.use(express.static('public'));
+app.set('views', path.join(__dirname, '/public/views'));
 
 const {
     INFO_BANNER_BTN,
@@ -66,6 +74,8 @@ async function scrapTrends(driver){
 
     await sleep(Math.random() * 3000 + 2000); 
 
+    
+
     for(let i = 1; i <= 5; i++){
         const trendcard = `/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/section/div/div/div[${i}]/div/div/div/div/div[2]/span/span`;
 
@@ -79,8 +89,17 @@ async function scrapTrends(driver){
 }
 
 (async () => {
-    const driver = await init();
-    await Login(driver);
-    await scrapTrends(driver);
-    await driver.quit();
+    // const driver = await init();
+    // await Login(driver);
+    // await scrapTrends(driver);
+    // await driver.quit();
 })();
+
+
+app.get('/', (req, res) => {
+    res.render('home');
+})
+
+app.listen(process.env.PORT, () => {
+    console.log(`Application started on port ${process.env.PORT}`);
+});

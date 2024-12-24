@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Home Page</title>
+
+    <style type="text/css" media="screen">
+        body {
+            font-family: sans-serif;
+            font-size: 16px;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            display: flex;
+            justify-content: center;
+        }
+
+        #scrapBtn {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-family: sans-serif;
+            font-size: 20px;
+            width: 150px;
+            height: auto;
+            background-color: #f06448;
+        }
+
+        #scrapBtn:hover {
+            background-color: #ff984c;
+        }
+    </style>
+</head>
+
+<body>
+    <h1> Twitter Trends Scapper </h1>
+    <center>
+        <div id="scrapBtn">
+            Start Scraping
+        </div>
+    </center>
+
+    <div class="trends-container">
+        <h2>Top 10 Trends</h2>
+        <ul>
+            <% for (let i=0; i < trends.length; i++) { %>
+                <div class="trend">
+                    <li>
+                        <h3>
+                            <%= trends[i].name %>
+                        </h3>
+                    </li>
+                </div>
+                <% } %>
+        </ul>
+
+    </div>
+
+</body>
+
+</html>

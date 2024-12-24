@@ -18,7 +18,8 @@ async function init() {
     var options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized'); 
-    options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'); // Set user-agent
+    options.addArguments('headless')
+    options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'); 
 
     var driver = new Builder()
         .forBrowser('chrome')
@@ -67,11 +68,12 @@ async function scrapTrends(driver){
 
     for(let i = 1; i <= 5; i++){
         const trendcard = `/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/section/div/div/div[${i}]/div/div/div/div/div[2]/span/span`;
+
+
         const trend = await driver.wait(until.elementLocated(By.xpath(trendcard), 10000));
         console.log(await trend.getText());
 
         await sleep(Math.random() * 3000 + 2000);
-        console.log(`sleep time : ${Math.random() * 3000 + 2000}`)
     }
 
 }
@@ -80,4 +82,5 @@ async function scrapTrends(driver){
     const driver = await init();
     await Login(driver);
     await scrapTrends(driver);
+    await driver.quit();
 })();

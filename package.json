@@ -1,0 +1,11 @@
+{
+  "name": "x-trending-scrapper",
+  "version": "1.0.0",
+  "description": "Web automation and scraping tool using selenium and proxymesh for scraping top5 what's happening topics from twitter ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shubham Raut",
+  "license": "ISC"
+}

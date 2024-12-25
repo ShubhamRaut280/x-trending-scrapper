@@ -110,7 +110,7 @@
                 t5.innerText = `5: ${data.trend5}`;
                 datetime.innerText = `These are the most happening topics as on datetime: ${data.endTime}`
 
-                mongoDoc.innerHTML = ` <p> Here’s a JSON extract of this record from the MongoDB: ${data} </p> ` ;
+                mongoDoc.innerHTML = ` <p> Here’s a JSON extract of this record from the MongoDB: ${JSON.stringify(data)} </p> ` ;
                 
                 scrapBtn.innerText = 'Start Scraping';
                 log_msg.innerText = 'Trends succcessfully fetched, click start scraping button to query again'

@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const trendSchema = new mongoose.Schema({
-    uniqueId: {
-        type: String,
-        required: true,
-        unique: true
-    },
     trend1: String,
     trend2: String,
     trend3: String,

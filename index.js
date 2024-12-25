@@ -32,12 +32,12 @@ async function init() {
     console.log('Initializing the drivers');
     var options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
-    options.addArguments('start-maximized'); 
+    options.addArguments('start-maximized');
     options.addArguments('headless') 
     options.addArguments('disable-gpu');
     options.addArguments('no-sandbox');
-    options.addArguments('disable-dev-shm-usage'); 
-    options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'); 
+    options.addArguments('disable-dev-shm-usage');
+    options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
     var driver = new Builder()
         .forBrowser('chrome')
@@ -51,34 +51,34 @@ async function init() {
 
 async function Login(driver) {
     console.log('Logging in');
-    await sleep(Math.random() * 3000 + 2000); 
+    await sleep(Math.random() * 3000 + 2000);
 
     const loginbtn = await driver.wait(until.elementLocated(By.xpath(LOGIN_BTN), 10000));
     await loginbtn.click();
 
-    await sleep(Math.random() * 3000 + 2000); 
+    await sleep(Math.random() * 3000 + 2000);
 
     const usernameInput = await driver.wait(until.elementLocated(By.xpath(USERNAME_INPUT), 10000));
     await usernameInput.sendKeys(process.env.X_USERNAME);
 
-    await sleep(Math.random() * 3000 + 2000); 
+    await sleep(Math.random() * 3000 + 2000);
 
     const usernameNextBtn = await driver.wait(until.elementLocated(By.xpath(USERNAME_NEXT_BTN), 10000));
     await usernameNextBtn.click();
 
-    await sleep(Math.random() * 3000 + 2000); 
+    await sleep(Math.random() * 3000 + 2000);
 
     const passInput = await driver.wait(until.elementLocated(By.xpath(PASS_INPUT), 10000));
     await passInput.sendKeys(process.env.X_PASSWORD);
 
-    await sleep(Math.random() * 3000 + 2000); 
+    await sleep(Math.random() * 3000 + 2000);
 
     const passNextBtn = await driver.wait(until.elementLocated(By.xpath(PASS_NEXT_BTN), 10000));
     await passNextBtn.click();
 
     console.log('Logged in successfully');
 
-    await sleep(Math.random() * 3000 + 2000); 
+    await sleep(Math.random() * 3000 + 2000);
 }
 
 
@@ -97,19 +97,19 @@ async function scrapTrends(driver) {
             const trend = await driver.wait(until.elementLocated(By.xpath(trendcard), 10000));
             const t = await trend.getText();
             trends.push(t);
-            // await sleep(Math.random() * 3000 + 2000);
+            await sleep(Math.random() * 1000);
             console.log(`Trend ${i} is ${t}`);
-        }catch(err){
+        } catch (err) {
             console.log('Error while scrapping trends');
         }
-            
+
     }
 
     return trends;
 
 }
 
-async function startScraping(){
+async function startScraping() {
     console.log('Starting the scraping process');
     const driver = await init();
     await Login(driver);
@@ -118,7 +118,6 @@ async function startScraping(){
 
     console.log('Saving the trends in db');
     const obtainedTrends = new Trend({
-        uniqueId: Date.now().toString(),
         trend1: trends[0],
         trend2: trends[1],
         trend3: trends[2],
@@ -128,15 +127,26 @@ async function startScraping(){
         ipAddress: '198.168.1.1'
     })
 
-    await obtainedTrends.save();
+    const saveddoc = await obtainedTrends.save();
 
-    console.log('Trends saved successfully');
+    console.log(`Trends saved successfully ${saveddoc._id}`);
+    console.log(`saved doc : ${saveddoc}`)
+
+    return saveddoc
 }
 
 
-app.get('/', async (req, res) => {
-   await startScraping();
-   res.render('home')
+app.get('/', (req, res) => {
+    res.render('home')
+})
+
+app.get('/scrap', async (req, res) => {
+    try {
+        const doc = await startScraping();
+        res.send({ success: true, data: doc })
+    } catch (err) {
+        res.send({success: false, data: err})
+    }
 })
 
 app.listen(process.env.PORT, () => {

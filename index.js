@@ -33,7 +33,10 @@ async function init() {
     var options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized'); 
-    // options.addArguments('headless')
+    options.addArguments('headless') 
+    options.addArguments('disable-gpu');
+    options.addArguments('no-sandbox');
+    options.addArguments('disable-dev-shm-usage'); 
     options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'); 
 
     var driver = new Builder()
@@ -106,7 +109,7 @@ async function scrapTrends(driver) {
 
 }
 
-async function startScraping(res){
+async function startScraping(){
     console.log('Starting the scraping process');
     const driver = await init();
     await Login(driver);
@@ -128,14 +131,12 @@ async function startScraping(res){
     await obtainedTrends.save();
 
     console.log('Trends saved successfully');
-
-    
-    res.render('home');
 }
 
 
 app.get('/', async (req, res) => {
-   await startScraping(res);
+   await startScraping();
+   res.render('home')
 })
 
 app.listen(process.env.PORT, () => {

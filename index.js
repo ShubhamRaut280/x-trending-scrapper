@@ -34,6 +34,11 @@ const {
 async function init() {
     console.log('Initializing the driver');
 
+    const proxy_username = process.env.PROXY_USERNAME;
+    const proxy_password = process.env.PROXY_PASSWORD;
+    const proxy_host = process.env.PROXY_HOST;
+    const proxy_port = process.env.PROXY_PORT;
+
     let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
@@ -52,13 +57,17 @@ async function init() {
         .setChromeOptions(options)
         .build();
 
+
     try {
+
+        const responseWithoutProxy = await axios.get('http://api.ipify.org?format=json');
+        console.log(`Current IP without proxy: ${responseWithoutProxy.data.ip}`);
 
         await driver.get('http://api.ipify.org?format=json');
         const ipElement = await driver.findElement(By.tagName('body'));
         const ipText = await ipElement.getText();
         const ipData = JSON.parse(ipText);
-        console.log(`Current IP using proxy: ${ipData.ip}`);
+        console.log(`Current IP with proxy: ${ipData.ip}`);
     } catch (err) {
         console.error('Error fetching current IP:', err);
     }

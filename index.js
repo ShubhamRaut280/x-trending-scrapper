@@ -16,7 +16,18 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.set('views', path.join(__dirname, '/public/views'));
 
+var currentIP = null;
+axios.get('http://api.ipify.org?format=json').then((res) => {
+    currentIP = res.data.ip;
+}
+).catch((err) => {
+    console.error('Error fetching current IP:', err);
+});
+
+
 connection(process.env.DATABASE_URL);
+
+
 
 
 const {
@@ -26,7 +37,11 @@ const {
     USERNAME_NEXT_BTN,
     PASS_INPUT,
     PASS_NEXT_BTN,
-    SHOW_MORE_TRENDS_BTN
+    SHOW_MORE_TRENDS_BTN,
+    REFRESH_BTN,
+    VERIFY_EMAIL_INPUT,
+    VERIFY_EMAIL_NEXT_BTN,
+    TRY_AGAIN_BTN
 } = require('./paths');
 
 
@@ -42,11 +57,11 @@ async function init() {
     let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
+    options.addArguments('--headless');
     options.addArguments('disable-gpu');
     options.addArguments('no-sandbox');
     options.addArguments('disable-dev-shm-usage');
 
-    // Load the proxy authentication extension
     const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
     options.addArguments(`--load-extension=${proxyAuthPluginPath}`);
 
@@ -60,13 +75,13 @@ async function init() {
 
     try {
 
-        const responseWithoutProxy = await axios.get('http://api.ipify.org?format=json');
-        console.log(`Current IP without proxy: ${responseWithoutProxy.data.ip}`);
+        console.log(`Current IP without proxy: ${currentIP}`);
 
         await driver.get('http://api.ipify.org?format=json');
         const ipElement = await driver.findElement(By.tagName('body'));
         const ipText = await ipElement.getText();
         const ipData = JSON.parse(ipText);
+        currentIP = ipData.ip;
         console.log(`Current IP with proxy: ${ipData.ip}`);
     } catch (err) {
         console.error('Error fetching current IP:', err);
@@ -81,35 +96,66 @@ async function init() {
 
 
 async function Login(driver) {
+
     console.log('Logging in');
-    await sleep(Math.random() * 3000 + 2000);
+
+    try{
+        const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
+        await infoBannerBtn.click();
+    }catch(err){}
+
+    try {
+        try {
+            const tryagainbtn = await driver.findElement(By.xpath(TRY_AGAIN_BTN));
+            await tryagainbtn.click();
+        }catch(err){}
+
+        const refresh = await driver.findElement(By.xpath(REFRESH_BTN));
+        await refresh.click();
+    } catch (err) {
+        console.log('No network error found, proceeding');
+    }
+
+
+    await sleep(Math.random() * 2000 + 2000);
 
     const loginbtn = await driver.wait(until.elementLocated(By.xpath(LOGIN_BTN), 10000));
     await loginbtn.click();
 
-    await sleep(Math.random() * 3000 + 2000);
+    await sleep(Math.random() * 2000 + 2000);
 
     const usernameInput = await driver.wait(until.elementLocated(By.xpath(USERNAME_INPUT), 10000));
     await usernameInput.sendKeys(process.env.X_USERNAME);
 
-    await sleep(Math.random() * 3000 + 2000);
+    await sleep(Math.random() * 2000 + 2000);
 
     const usernameNextBtn = await driver.wait(until.elementLocated(By.xpath(USERNAME_NEXT_BTN), 10000));
     await usernameNextBtn.click();
 
-    await sleep(Math.random() * 3000 + 2000);
+    await sleep(Math.random() * 2000 + 2000);
+
+    try {
+        const verifyEmailInput = await driver.wait(until.elementLocated(By.xpath(VERIFY_EMAIL_INPUT), 10000));
+        await verifyEmailInput.sendKeys(process.env.X_EMAIL);
+        await sleep(Math.random() * 1000 + 2000);
+        const verifyEmailNextBtn = await driver.wait(until.elementLocated(By.xpath(VERIFY_EMAIL_NEXT_BTN), 10000));
+        await verifyEmailNextBtn.click();
+    } catch (err) {
+        console.log('No email verification needed');
+    }
+
 
     const passInput = await driver.wait(until.elementLocated(By.xpath(PASS_INPUT), 10000));
     await passInput.sendKeys(process.env.X_PASSWORD);
 
-    await sleep(Math.random() * 3000 + 2000);
+    // await sleep(Math.random() * 3000 + 2000);
 
     const passNextBtn = await driver.wait(until.elementLocated(By.xpath(PASS_NEXT_BTN), 10000));
     await passNextBtn.click();
 
     console.log('Logged in successfully');
 
-    await sleep(Math.random() * 3000 + 2000);
+    // await sleep(Math.random() * 3000 + 2000);
 }
 
 
@@ -119,16 +165,18 @@ async function scrapTrends(driver) {
     const showmoreTrendsBtn = await driver.wait(until.elementLocated(By.xpath(SHOW_MORE_TRENDS_BTN), 10000));
     await showmoreTrendsBtn.click();
 
-    await sleep(Math.random() * 3000 + 2000);
+    // await sleep(Math.random() * 3000 + 2000);
+
+    console.log('scraping started')
 
     const trends = [];
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 2; i <= 6; i++) {
+        console.log(`Scraping trend ${i}`);
         try {
             const trendcard = `/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/section/div/div/div[${i}]/div/div/div/div/div[2]/span`;
-            const trend = await driver.wait(until.elementLocated(By.xpath(trendcard), 10000));
+            const trend = await driver.wait(until.elementLocated(By.xpath(trendcard), 5000));
             const t = await trend.getText();
             trends.push(t);
-            await sleep(Math.random() * 1000);
             console.log(`Trend ${i} is ${t}`);
         } catch (err) {
             console.log('Error while scrapping trends');
@@ -155,8 +203,9 @@ async function startScraping() {
         trend4: trends[3],
         trend5: trends[4],
         endTime: new Date(),
-        ipAddress: '198.168.1.1'
+        ipAddress: currentIP
     })
+
 
     const saveddoc = await obtainedTrends.save();
 

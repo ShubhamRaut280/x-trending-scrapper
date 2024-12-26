@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const path = require('path')
 const mongoose = require('mongoose');
+const axios = require('axios')
 const { Trend } = require('./models/trendSchema');
 
 const { Builder, By, Key, until } = require('selenium-webdriver');
@@ -28,26 +29,47 @@ const {
     SHOW_MORE_TRENDS_BTN
 } = require('./paths');
 
+
+
 async function init() {
-    console.log('Initializing the drivers');
-    var options = new chrome.Options();
+    console.log('Initializing the driver');
+
+    let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
-    options.addArguments('headless') 
     options.addArguments('disable-gpu');
     options.addArguments('no-sandbox');
     options.addArguments('disable-dev-shm-usage');
-    options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
-    var driver = new Builder()
+    // Load the proxy authentication extension
+    const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
+    options.addArguments(`--load-extension=${proxyAuthPluginPath}`);
+
+    console.log('Proxy settings applied with extension');
+
+    let driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(options)
         .build();
 
+    try {
+
+        await driver.get('http://api.ipify.org?format=json');
+        const ipElement = await driver.findElement(By.tagName('body'));
+        const ipText = await ipElement.getText();
+        const ipData = JSON.parse(ipText);
+        console.log(`Current IP using proxy: ${ipData.ip}`);
+    } catch (err) {
+        console.error('Error fetching current IP:', err);
+    }
+
     await driver.get("https://x.com/home");
+
     console.log('Driver initialized');
     return driver;
 }
+
+
 
 async function Login(driver) {
     console.log('Logging in');
@@ -111,7 +133,7 @@ async function scrapTrends(driver) {
 
 async function startScraping() {
     console.log('Starting the scraping process');
-    const driver = await init();
+    const driver = await init().catch(err => console.error('Error initializing driver:', err));
     await Login(driver);
     const trends = await scrapTrends(driver);
     await driver.quit();
@@ -145,7 +167,7 @@ app.get('/scrap', async (req, res) => {
         const doc = await startScraping();
         res.send({ success: true, data: doc })
     } catch (err) {
-        res.send({success: false, data: err})
+        res.send({ success: false, data: err })
     }
 })
 

@@ -59,11 +59,15 @@ async function init() {
     // const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
     // options.addArguments(`--load-extension=${proxyAuthPluginPath}`);
 
+    console.log('options has been set')
 
     let driver = await new Builder()
         .forBrowser('chrome')
         .setChromeOptions(options)
         .build();
+
+        console.log('Driver initialized');
+
 
     try {
         await driver.get('http://api.ipify.org?format=json');
@@ -71,18 +75,18 @@ async function init() {
         const ipText = await ipElement.getText();
         const ipData = JSON.parse(ipText);
         currentIP = ipData.ip;
+        console.log('Current IP:', currentIP);
     } catch (err) {
-        log('Error fetching current IP:', err);
+        console.log('Error fetching current IP:', err);
     }
 
     await driver.get("https://x.com/login");
 
-    log('Driver initialized');
     return driver;
 }
 
 async function Login(driver) {
-    log('Logging in');
+    console.log('Logging in');
 
     try {
         const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
@@ -114,7 +118,7 @@ async function Login(driver) {
         const verifyEmailNextBtn = await driver.findElement(By.xpath(VERIFY_EMAIL_NEXT_BTN));
         if (verifyEmailNextBtn) await verifyEmailNextBtn.click();
     } catch (err) {
-        log('No email verification needed');
+        console.log('No email verification needed');
     }
 
     await sleep(Math.random() * 1000 + 1000);
@@ -135,14 +139,14 @@ async function Login(driver) {
     const passNextBtn = await driver.wait(until.elementLocated(By.xpath(PASS_NEXT_BTN), 10000));
     await passNextBtn.click();
 
-    log('Logged in successfully');
+    console.log('Logged in successfully');
 
     await driver.wait(until.urlContains("home"), 10000);
     await driver.get("https://x.com/explore/tabs/trending");
 }
 
 async function scrapTrends(driver) {
-    log('Scraping trends');
+    console.log('Scraping trends');
 
     try {
         window.scrollBy(0, 50);
@@ -150,7 +154,7 @@ async function scrapTrends(driver) {
         await infoBannerBtn.click();
     } catch (err) { }
 
-    log('Scraping started');
+    console.log('Scraping started');
 
     const trends = [];
     let count = 0;
@@ -162,9 +166,9 @@ async function scrapTrends(driver) {
             const t = await trend.getText();
             trends.push(t);
             count++;
-            log(`Trend ${i} is ${t}`);
+            console.log(`Trend ${i} is ${t}`);
         } catch (err) {
-            log('Error while scraping trends:', err);
+            console.log('Error while scraping trends:', err);
         }
     }
 
@@ -172,13 +176,13 @@ async function scrapTrends(driver) {
 }
 
 async function startScraping() {
-    log('Starting the scraping process');
+    console.log('Starting the scraping process');
     const driver = await init().catch(err => log('Error initializing driver:', err));
     await Login(driver);
     const trends = await scrapTrends(driver);
     await driver.quit();
 
-    log('Saving the trends in db');
+    console.log('Saving the trends in db');
     const obtainedTrends = new Trend({
         trend1: trends[0],
         trend2: trends[1],
@@ -191,8 +195,8 @@ async function startScraping() {
 
     const saveddoc = await obtainedTrends.save();
 
-    log(`Trends saved successfully ${saveddoc._id}`);
-    log(`Saved doc : ${JSON.stringify(saveddoc)}`);
+    console.log(`Trends saved successfully ${saveddoc._id}`);
+    console.log(`Saved doc : ${JSON.stringify(saveddoc)}`);
 
     return saveddoc;
 }
@@ -202,6 +206,7 @@ app.get('/api/scrap', async (req, res) => {
         const doc = await startScraping();
         res.send({ success: true, data: doc });
     } catch (err) {
+        console.log(err)
         res.send({ success: false, data: err });
     }
 });

@@ -1,24 +1,15 @@
 require('dotenv').config();
 const express = require('express');
-const app = express();
-const path = require('path');
 const mongoose = require('mongoose');
 const axios = require('axios');
 const { Trend } = require('./models/trendSchema');
-const { Builder, By, Key, until } = require('selenium-webdriver');
+const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const { promisify } = require('util');
 const sleep = promisify(setTimeout);
 const { connection } = require('./connection.js');
-// const http = require('http').createServer(app);
-const io = require('socket.io')(app.listen(process.env.PORT, () => {
-    console.log(`Application started on port ${process.env.PORT}`);
-    emitLog(`Application started on port ${process.env.PORT}`);
-}));
 
-app.set('view engine', 'ejs');
-app.use(express.static('public'));
-app.set('views', path.join(__dirname, '/public/views'));
+const app = express();
 
 let currentIP = null;
 axios.get('http://api.ipify.org?format=json').then((res) => {
@@ -45,12 +36,12 @@ const {
     DIFF_VERIFY_EMAIL_NEXT_BTN
 } = require('./paths');
 
-function emitLog(message) {
-    io.emit('log', message);
+function log(message) {
+    console.log(message);
 }
 
 async function init() {
-    emitLog('Initializing the driver');
+    log('Initializing the driver');
 
     const proxy_username = process.env.PROXY_USERNAME;
     const proxy_password = process.env.PROXY_PASSWORD;
@@ -60,7 +51,7 @@ async function init() {
     let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
-    options.addArguments('--headless');
+    // options.addArguments('--headless');
     options.addArguments('disable-gpu');
     options.addArguments('no-sandbox');
     options.addArguments('disable-dev-shm-usage');
@@ -68,7 +59,6 @@ async function init() {
     // const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
     // options.addArguments(`--load-extension=${proxyAuthPluginPath}`);
 
-    emitLog('Proxy settings applied with extension');
 
     let driver = await new Builder()
         .forBrowser('chrome')
@@ -76,27 +66,23 @@ async function init() {
         .build();
 
     try {
-        // emitLog(`Current IP without proxy: ${currentIP}`);
-
         await driver.get('http://api.ipify.org?format=json');
         const ipElement = await driver.findElement(By.tagName('body'));
         const ipText = await ipElement.getText();
         const ipData = JSON.parse(ipText);
         currentIP = ipData.ip;
-        // emitLog(`Current IP with proxy: ${ipData.ip}`);
     } catch (err) {
-        // emitLog('Error fetching current IP:', err);
+        log('Error fetching current IP:', err);
     }
 
     await driver.get("https://x.com/login");
 
-
-    emitLog('Driver initialized');
+    log('Driver initialized');
     return driver;
 }
 
 async function Login(driver) {
-    emitLog('Logging in');
+    log('Logging in');
 
     try {
         const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
@@ -111,21 +97,13 @@ async function Login(driver) {
 
         const refresh = await driver.findElement(By.xpath(REFRESH_BTN));
         await refresh.click();
-    } catch (err) {
-    }
-
-    // const loginbtn = await driver.wait(until.elementLocated(By.xpath(LOGIN_BTN), 10000));
-    // await loginbtn.click();
+    } catch (err) { }
 
     const usernameInput = await driver.wait(until.elementLocated(By.xpath(USERNAME_INPUT), 10000));
     await usernameInput.sendKeys(process.env.X_USERNAME);
 
-    // await sleep(Math.random() * 1000);
-
     const usernameNextBtn = await driver.wait(until.elementLocated(By.xpath(USERNAME_NEXT_BTN), 10000));
     await usernameNextBtn.click();
-
-    // await sleep(Math.random() * 2000 + 2000);
 
     try {
         const verifyEmailInput = await driver.findElement(By.xpath(VERIFY_EMAIL_INPUT));
@@ -136,13 +114,12 @@ async function Login(driver) {
         const verifyEmailNextBtn = await driver.findElement(By.xpath(VERIFY_EMAIL_NEXT_BTN));
         if (verifyEmailNextBtn) await verifyEmailNextBtn.click();
     } catch (err) {
-        emitLog('No email verification needed');
+        log('No email verification needed');
     }
 
     await sleep(Math.random() * 1000 + 1000);
 
-    
-    try{
+    try {
         const diffVerifyEmailInput = await driver.findElement(By.xpath(DIFF_VERIFY_EMAIL_INPUT));
         if (diffVerifyEmailInput) {
             await diffVerifyEmailInput.sendKeys(process.env.X_EMAIL);
@@ -150,9 +127,7 @@ async function Login(driver) {
         }
         const diffVerifyEmailNextBtn = await driver.findElement(By.xpath(DIFF_VERIFY_EMAIL_NEXT_BTN));
         if (diffVerifyEmailNextBtn) await diffVerifyEmailNextBtn.click();
-    }catch(err){}
-
-
+    } catch (err) { }
 
     const passInput = await driver.wait(until.elementLocated(By.xpath(PASS_INPUT), 10000));
     await passInput.sendKeys(process.env.X_PASSWORD);
@@ -160,15 +135,14 @@ async function Login(driver) {
     const passNextBtn = await driver.wait(until.elementLocated(By.xpath(PASS_NEXT_BTN), 10000));
     await passNextBtn.click();
 
-    emitLog('Logged in successfully');
+    log('Logged in successfully');
 
     await driver.wait(until.urlContains("home"), 10000);
     await driver.get("https://x.com/explore/tabs/trending");
 }
 
 async function scrapTrends(driver) {
-    emitLog('Scraping trends');
-
+    log('Scraping trends');
 
     try {
         window.scrollBy(0, 50);
@@ -176,10 +150,7 @@ async function scrapTrends(driver) {
         await infoBannerBtn.click();
     } catch (err) { }
 
-    // const showmoreTrendsBtn = await driver.wait(until.elementLocated(By.xpath(SHOW_MORE_TRENDS_BTN), 10000));
-    // await showmoreTrendsBtn.click();
-
-    emitLog('Scraping started')
+    log('Scraping started');
 
     const trends = [];
     let count = 0;
@@ -191,9 +162,9 @@ async function scrapTrends(driver) {
             const t = await trend.getText();
             trends.push(t);
             count++;
-            emitLog(`Trend ${i} is ${t}`);
+            log(`Trend ${i} is ${t}`);
         } catch (err) {
-            emitLog('Error while scrapping trends');
+            log('Error while scraping trends:', err);
         }
     }
 
@@ -201,13 +172,13 @@ async function scrapTrends(driver) {
 }
 
 async function startScraping() {
-    emitLog('Starting the scraping process');
-    const driver = await init().catch(err => emitLog('Error initializing driver:', err));
+    log('Starting the scraping process');
+    const driver = await init().catch(err => log('Error initializing driver:', err));
     await Login(driver);
     const trends = await scrapTrends(driver);
     await driver.quit();
 
-    emitLog('Saving the trends in db');
+    log('Saving the trends in db');
     const obtainedTrends = new Trend({
         trend1: trends[0],
         trend2: trends[1],
@@ -220,17 +191,13 @@ async function startScraping() {
 
     const saveddoc = await obtainedTrends.save();
 
-    emitLog(`Trends saved successfully ${saveddoc._id}`);
-    emitLog(`Saved doc : ${JSON.stringify(saveddoc)}`);
+    log(`Trends saved successfully ${saveddoc._id}`);
+    log(`Saved doc : ${JSON.stringify(saveddoc)}`);
 
     return saveddoc;
 }
 
-app.get('/', (req, res) => {
-    res.render('home')
-});
-
-app.get('/scrap', async (req, res) => {
+app.get('/api/scrap', async (req, res) => {
     try {
         const doc = await startScraping();
         res.send({ success: true, data: doc });
@@ -239,10 +206,6 @@ app.get('/scrap', async (req, res) => {
     }
 });
 
-// http.listen(process.env.PORT, () => {
-//     console.log(`Application started on port ${process.env.PORT}`);
-//     emitLog(`Application started on port ${process.env.PORT}`);
-// });
-
-
-module.exports = app;
+app.listen(process.env.PORT, () => {
+    console.log(`Backend started on port ${process.env.PORT}`);
+});

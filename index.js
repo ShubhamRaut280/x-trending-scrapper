@@ -10,8 +10,11 @@ const chrome = require('selenium-webdriver/chrome');
 const { promisify } = require('util');
 const sleep = promisify(setTimeout);
 const { connection } = require('./connection.js');
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+// const http = require('http').createServer(app);
+const io = require('socket.io')(app.listen(process.env.PORT, () => {
+    console.log(`Application started on port ${process.env.PORT}`);
+    emitLog(`Application started on port ${process.env.PORT}`);
+}));
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -237,7 +240,10 @@ app.get('/scrap', async (req, res) => {
     }
 });
 
-http.listen(process.env.PORT, () => {
-    console.log(`Application started on port ${process.env.PORT}`);
-    emitLog(`Application started on port ${process.env.PORT}`);
-});
+// http.listen(process.env.PORT, () => {
+//     console.log(`Application started on port ${process.env.PORT}`);
+//     emitLog(`Application started on port ${process.env.PORT}`);
+// });
+
+
+module.exports = app;

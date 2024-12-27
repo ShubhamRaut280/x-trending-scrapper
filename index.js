@@ -88,7 +88,8 @@ async function init() {
         // emitLog('Error fetching current IP:', err);
     }
 
-    await driver.get("https://x.com/home");
+    await driver.get("https://x.com/login");
+
 
     emitLog('Driver initialized');
     return driver;
@@ -111,25 +112,20 @@ async function Login(driver) {
         const refresh = await driver.findElement(By.xpath(REFRESH_BTN));
         await refresh.click();
     } catch (err) {
-        // emitLog('No network error found, proceeding');
     }
 
-    await sleep(Math.random() * 2000 + 2000);
-
-    const loginbtn = await driver.wait(until.elementLocated(By.xpath(LOGIN_BTN), 10000));
-    await loginbtn.click();
-
-    await sleep(Math.random() * 2000 + 2000);
+    // const loginbtn = await driver.wait(until.elementLocated(By.xpath(LOGIN_BTN), 10000));
+    // await loginbtn.click();
 
     const usernameInput = await driver.wait(until.elementLocated(By.xpath(USERNAME_INPUT), 10000));
     await usernameInput.sendKeys(process.env.X_USERNAME);
 
-    await sleep(Math.random() * 2000 + 2000);
+    // await sleep(Math.random() * 1000);
 
     const usernameNextBtn = await driver.wait(until.elementLocated(By.xpath(USERNAME_NEXT_BTN), 10000));
     await usernameNextBtn.click();
 
-    await sleep(Math.random() * 2000 + 2000);
+    // await sleep(Math.random() * 2000 + 2000);
 
     try {
         const verifyEmailInput = await driver.findElement(By.xpath(VERIFY_EMAIL_INPUT));
@@ -165,6 +161,9 @@ async function Login(driver) {
     await passNextBtn.click();
 
     emitLog('Logged in successfully');
+
+    await driver.wait(until.urlContains("home"), 10000);
+    await driver.get("https://x.com/explore/tabs/trending");
 }
 
 async function scrapTrends(driver) {
@@ -177,14 +176,14 @@ async function scrapTrends(driver) {
         await infoBannerBtn.click();
     } catch (err) { }
 
-    const showmoreTrendsBtn = await driver.wait(until.elementLocated(By.xpath(SHOW_MORE_TRENDS_BTN), 10000));
-    await showmoreTrendsBtn.click();
+    // const showmoreTrendsBtn = await driver.wait(until.elementLocated(By.xpath(SHOW_MORE_TRENDS_BTN), 10000));
+    // await showmoreTrendsBtn.click();
 
     emitLog('Scraping started')
 
     const trends = [];
     let count = 0;
-    for (let i = 2; i <= 20; i++) {
+    for (let i = 1; i <= 20; i++) {
         if (count >= 5) break;
         try {
             const trendcard = `/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/section/div/div/div[${i}]/div/div/div/div/div[2]/span`;

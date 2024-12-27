@@ -177,7 +177,7 @@ async function scrapTrends(driver) {
 
 async function startScraping() {
     console.log('Starting the scraping process');
-    const driver = await init().catch(err => log('Error initializing driver:', err));
+    const driver = await init().catch(err => log('Error initializing driver:', err.message));
     await Login(driver);
     const trends = await scrapTrends(driver);
     await driver.quit();
@@ -209,6 +209,10 @@ app.get('/api/scrap', async (req, res) => {
         console.log(err)
         res.send({ success: false, data: err });
     }
+});
+
+app.get('/api', async (req, res) => {
+    res.send('Welcome to the X scraper API');
 });
 
 app.listen(process.env.PORT, () => {

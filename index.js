@@ -8,8 +8,13 @@ const chrome = require('selenium-webdriver/chrome');
 const { promisify } = require('util');
 const sleep = promisify(setTimeout);
 const { connection } = require('./connection.js');
+const cors = require('cors');
+
 
 const app = express();
+
+app.use(cors());
+
 
 let currentIP = null;
 axios.get('http://api.ipify.org?format=json').then((res) => {
@@ -51,10 +56,10 @@ async function init() {
     let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
-    options.addArguments('--headless');
-    options.addArguments('disable-gpu');
-    options.addArguments('no-sandbox');
-    options.addArguments('disable-dev-shm-usage');
+    // options.addArguments('--headless');
+    // options.addArguments('disable-gpu');
+    // options.addArguments('no-sandbox');
+    // options.addArguments('disable-dev-shm-usage');
 
     // const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
     // options.addArguments(`--load-extension=${proxyAuthPluginPath}`);

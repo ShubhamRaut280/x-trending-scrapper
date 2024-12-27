@@ -16,6 +16,8 @@ const DIFF_VERIFY_EMAIL_INPUT = "/html/body/div[1]/div/div/div[1]/div[2]/div/div
 const VERIFY_EMAIL_NEXT_BTN = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button/div";
 const DIFF_VERIFY_EMAIL_NEXT_BTN = "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button/div"
 
+const SECURITY_ERROR_BTN = "/html/body/div/div/div/div[2]/form/div/button/div"
+
 module.exports = {
     INFO_BANNER_BTN,
     LOGIN_BTN,
@@ -29,5 +31,6 @@ module.exports = {
     VERIFY_EMAIL_NEXT_BTN,
     TRY_AGAIN_BTN,
     DIFF_VERIFY_EMAIL_INPUT,
-    DIFF_VERIFY_EMAIL_NEXT_BTN
+    DIFF_VERIFY_EMAIL_NEXT_BTN,
+    SECURITY_ERROR_BTN
 }

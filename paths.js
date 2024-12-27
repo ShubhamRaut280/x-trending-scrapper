@@ -11,7 +11,10 @@ const SHOW_MORE_TRENDS_BTN = "/html/body/div[1]/div/div/div[2]/main/div/div/div/
 const TRY_AGAIN_BTN = "/html/body/div/div/div/div[2]/form/div/button/div/span";
 const REFRESH_BTN = "/html/body/div/div/div/div/div/button/div";
 const VERIFY_EMAIL_INPUT = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/label/div/div[2]/div/input";
+const DIFF_VERIFY_EMAIL_INPUT = "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[1]/div/div[2]/label/div/div[2]/div/input"
+
 const VERIFY_EMAIL_NEXT_BTN = "/html/body/div/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button/div";
+const DIFF_VERIFY_EMAIL_NEXT_BTN = "/html/body/div[1]/div/div/div[1]/div[2]/div/div/div/div/div/div[2]/div[2]/div/div/div[2]/div[2]/div[2]/div/div/div/button/div"
 
 module.exports = {
     INFO_BANNER_BTN,
@@ -24,5 +27,7 @@ module.exports = {
     REFRESH_BTN,
     VERIFY_EMAIL_INPUT,
     VERIFY_EMAIL_NEXT_BTN,
-    TRY_AGAIN_BTN
+    TRY_AGAIN_BTN,
+    DIFF_VERIFY_EMAIL_INPUT,
+    DIFF_VERIFY_EMAIL_NEXT_BTN
 }

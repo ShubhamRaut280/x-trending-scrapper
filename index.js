@@ -10,8 +10,7 @@ const chrome = require('selenium-webdriver/chrome');
 const { promisify } = require('util');
 const sleep = promisify(setTimeout);
 const { connection } = require('./connection.js');
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(app.listen(process.env.PORT));
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
@@ -37,7 +36,9 @@ const {
     REFRESH_BTN,
     VERIFY_EMAIL_INPUT,
     VERIFY_EMAIL_NEXT_BTN,
-    TRY_AGAIN_BTN
+    TRY_AGAIN_BTN,
+    DIFF_VERIFY_EMAIL_INPUT,
+    DIFF_VERIFY_EMAIL_NEXT_BTN
 } = require('./paths');
 
 function emitLog(message) {
@@ -55,7 +56,7 @@ async function init() {
     let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
-    options.addArguments('--headless');
+    // options.addArguments('--headless');
     options.addArguments('disable-gpu');
     options.addArguments('no-sandbox');
     options.addArguments('disable-dev-shm-usage');
@@ -137,6 +138,21 @@ async function Login(driver) {
     } catch (err) {
         emitLog('No email verification needed');
     }
+
+    await sleep(Math.random() * 1000 + 1000);
+
+    
+    try{
+        const diffVerifyEmailInput = await driver.findElement(By.xpath(DIFF_VERIFY_EMAIL_INPUT));
+        if (diffVerifyEmailInput) {
+            await diffVerifyEmailInput.sendKeys(process.env.X_EMAIL);
+            await sleep(Math.random() * 1000 + 1000);
+        }
+        const diffVerifyEmailNextBtn = await driver.findElement(By.xpath(DIFF_VERIFY_EMAIL_NEXT_BTN));
+        if (diffVerifyEmailNextBtn) await diffVerifyEmailNextBtn.click();
+    }catch(err){}
+
+
 
     const passInput = await driver.wait(until.elementLocated(By.xpath(PASS_INPUT), 10000));
     await passInput.sendKeys(process.env.X_PASSWORD);
@@ -220,7 +236,9 @@ app.get('/scrap', async (req, res) => {
     }
 });
 
-http.listen(process.env.PORT, () => {
-    console.log(`Application started on port ${process.env.PORT}`);
-    emitLog(`Application started on port ${process.env.PORT}`);
-});
+// app.listen(process.env.PORT, () => {
+//     console.log(`Application started on port ${process.env.PORT}`);
+//     emitLog(`Application started on port ${process.env.PORT}`);
+// });
+
+module.exports = app;

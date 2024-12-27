@@ -84,6 +84,12 @@ async function init() {
     }
 }
 
+(async () => {
+    await init();
+    await Login(driver);
+})();
+
+
 async function Login(driver) {
 
 
@@ -201,7 +207,6 @@ async function startScraping() {
     console.log('Starting the scraping process');
     if (!driver) {
         await init();
-
         await Login(driver);
 
     }

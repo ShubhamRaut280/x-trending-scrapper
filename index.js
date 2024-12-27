@@ -214,3 +214,5 @@ app.get('/api/scrap', async (req, res) => {
 app.listen(process.env.PORT, () => {
     console.log(`Backend started on port ${process.env.PORT}`);
 });
+
+module.exports = app;

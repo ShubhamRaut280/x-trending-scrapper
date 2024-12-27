@@ -71,16 +71,16 @@ async function init() {
         .build();
 
     try {
-        emitLog(`Current IP without proxy: ${currentIP}`);
+        // emitLog(`Current IP without proxy: ${currentIP}`);
 
         await driver.get('http://api.ipify.org?format=json');
         const ipElement = await driver.findElement(By.tagName('body'));
         const ipText = await ipElement.getText();
         const ipData = JSON.parse(ipText);
         currentIP = ipData.ip;
-        emitLog(`Current IP with proxy: ${ipData.ip}`);
+        // emitLog(`Current IP with proxy: ${ipData.ip}`);
     } catch (err) {
-        emitLog('Error fetching current IP:', err);
+        // emitLog('Error fetching current IP:', err);
     }
 
     await driver.get("https://x.com/home");
@@ -95,18 +95,18 @@ async function Login(driver) {
     try {
         const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
         await infoBannerBtn.click();
-    } catch (err) {}
+    } catch (err) { }
 
     try {
         try {
             const tryagainbtn = await driver.findElement(By.xpath(TRY_AGAIN_BTN));
             await tryagainbtn.click();
-        } catch (err) {}
+        } catch (err) { }
 
         const refresh = await driver.findElement(By.xpath(REFRESH_BTN));
         await refresh.click();
     } catch (err) {
-        emitLog('No network error found, proceeding');
+        // emitLog('No network error found, proceeding');
     }
 
     await sleep(Math.random() * 2000 + 2000);
@@ -127,10 +127,13 @@ async function Login(driver) {
     await sleep(Math.random() * 2000 + 2000);
 
     try {
-        const verifyEmailInput = await driver.wait(until.elementIsVisible(By.xpath(VERIFY_EMAIL_INPUT), 2000));
-        if(verifyEmailInput) await verifyEmailInput.sendKeys(process.env.X_EMAIL);
-        const verifyEmailNextBtn = await driver.wait(until.elementIsVisible(By.xpath(VERIFY_EMAIL_NEXT_BTN), 2000));
-        if(verifyEmailNextBtn) await verifyEmailNextBtn.click();
+        const verifyEmailInput = await driver.findElement(By.xpath(VERIFY_EMAIL_INPUT));
+        if (verifyEmailInput) {
+            await verifyEmailInput.sendKeys(process.env.X_EMAIL);
+            await sleep(Math.random() * 2000 + 1000);
+        }
+        const verifyEmailNextBtn = await driver.findElement(By.xpath(VERIFY_EMAIL_NEXT_BTN));
+        if (verifyEmailNextBtn) await verifyEmailNextBtn.click();
     } catch (err) {
         emitLog('No email verification needed');
     }
@@ -147,12 +150,12 @@ async function Login(driver) {
 async function scrapTrends(driver) {
     emitLog('Scraping trends');
 
-    
+
     try {
         window.scrollBy(0, 50);
         const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
         await infoBannerBtn.click();
-    } catch (err) {}
+    } catch (err) { }
 
     const showmoreTrendsBtn = await driver.wait(until.elementLocated(By.xpath(SHOW_MORE_TRENDS_BTN), 10000));
     await showmoreTrendsBtn.click();
@@ -162,7 +165,7 @@ async function scrapTrends(driver) {
     const trends = [];
     let count = 0;
     for (let i = 2; i <= 20; i++) {
-        if(count >= 5) break;
+        if (count >= 5) break;
         try {
             const trendcard = `/html/body/div[1]/div/div/div[2]/main/div/div/div/div[1]/div/div[3]/div/section/div/div/div[${i}]/div/div/div/div/div[2]/span`;
             const trend = await driver.wait(until.elementLocated(By.xpath(trendcard), 2000));

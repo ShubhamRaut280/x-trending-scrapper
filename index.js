@@ -10,18 +10,21 @@ const sleep = promisify(setTimeout);
 const { connection } = require('./connection.js');
 const cors = require('cors');
 
-
 const app = express();
 
 app.use(cors());
 
-
 let currentIP = null;
-axios.get('http://api.ipify.org?format=json').then((res) => {
-    currentIP = res.data.ip;
-}).catch((err) => {
-    console.error('Error fetching current IP:', err);
-});
+let driver = null; 
+
+axios
+    .get('http://api.ipify.org?format=json')
+    .then((res) => {
+        currentIP = res.data.ip;
+    })
+    .catch((err) => {
+        console.error('Error fetching current IP:', err);
+    });
 
 connection(process.env.DATABASE_URL);
 
@@ -38,7 +41,7 @@ const {
     VERIFY_EMAIL_NEXT_BTN,
     TRY_AGAIN_BTN,
     DIFF_VERIFY_EMAIL_INPUT,
-    DIFF_VERIFY_EMAIL_NEXT_BTN
+    DIFF_VERIFY_EMAIL_NEXT_BTN,
 } = require('./paths');
 
 function log(message) {
@@ -53,25 +56,31 @@ async function init() {
     const proxy_host = process.env.PROXY_HOST;
     const proxy_port = process.env.PROXY_PORT;
 
-    let options = new chrome.Options();
-    options.addArguments('--disable-blink-features=AutomationControlled');
-    options.addArguments('start-maximized');
-    // options.addArguments('--headless');
-    // options.addArguments('disable-gpu');
-    // options.addArguments('no-sandbox');
-    // options.addArguments('disable-dev-shm-usage');
-
-    // const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
-    // options.addArguments(`--load-extension=${proxyAuthPluginPath}`);
-
-    console.log('options has been set')
-
-    let driver = await new Builder()
-        .forBrowser('chrome')
-        .setChromeOptions(options)
-        .build();
-
+    try{
+        let options = new chrome.Options();
+        options.addArguments('--disable-blink-features=AutomationControlled');
+        // options.addArguments('start-maximized');
+        options.addArguments('--headless');
+        options.addArguments('disable-gpu');
+        options.addArguments('no-sandbox');
+        options.addArguments('disable-dev-shm-usage');
+    
+        //  const proxyAuthPluginPath = path.resolve(__dirname, 'proxy_auth_plugin');
+        //     options.addArguments(`--load-extension=${proxyAuthPluginPath}`);
+    
+    
+        driver = await new Builder()
+            .forBrowser('chrome')
+            .setChromeOptions(options)
+            .build();
+    
         console.log('Driver initialized');
+    }catch(err){
+        console.log('Error initializing driver:', err);
+    }
+}
+
+async function Login(driver) {
 
 
     try {
@@ -87,26 +96,24 @@ async function init() {
 
     await driver.get("https://x.com/login");
 
-    return driver;
-}
 
-async function Login(driver) {
+
     console.log('Logging in');
 
     try {
         const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
         await infoBannerBtn.click();
-    } catch (err) { }
+    } catch (err) {}
 
     try {
         try {
             const tryagainbtn = await driver.findElement(By.xpath(TRY_AGAIN_BTN));
             await tryagainbtn.click();
-        } catch (err) { }
+        } catch (err) {}
 
         const refresh = await driver.findElement(By.xpath(REFRESH_BTN));
         await refresh.click();
-    } catch (err) { }
+    } catch (err) {}
 
     const usernameInput = await driver.wait(until.elementLocated(By.xpath(USERNAME_INPUT), 10000));
     await usernameInput.sendKeys(process.env.X_USERNAME);
@@ -136,7 +143,7 @@ async function Login(driver) {
         }
         const diffVerifyEmailNextBtn = await driver.findElement(By.xpath(DIFF_VERIFY_EMAIL_NEXT_BTN));
         if (diffVerifyEmailNextBtn) await diffVerifyEmailNextBtn.click();
-    } catch (err) { }
+    } catch (err) {}
 
     const passInput = await driver.wait(until.elementLocated(By.xpath(PASS_INPUT), 10000));
     await passInput.sendKeys(process.env.X_PASSWORD);
@@ -157,7 +164,7 @@ async function scrapTrends(driver) {
         window.scrollBy(0, 50);
         const infoBannerBtn = await driver.findElement(By.xpath(INFO_BANNER_BTN));
         await infoBannerBtn.click();
-    } catch (err) { }
+    } catch (err) {}
 
     console.log('Scraping started');
 
@@ -182,10 +189,14 @@ async function scrapTrends(driver) {
 
 async function startScraping() {
     console.log('Starting the scraping process');
-    const driver = await init().catch(err => log('Error initializing driver:', err.message));
+    if (!driver) {
+        await init();
+    }
+
+    
     await Login(driver);
+
     const trends = await scrapTrends(driver);
-    await driver.quit();
 
     console.log('Saving the trends in db');
     const obtainedTrends = new Trend({

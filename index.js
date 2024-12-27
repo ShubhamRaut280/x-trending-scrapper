@@ -60,7 +60,7 @@ async function init() {
     let options = new chrome.Options();
     options.addArguments('--disable-blink-features=AutomationControlled');
     options.addArguments('start-maximized');
-    // options.addArguments('--headless');
+    options.addArguments('--headless');
     options.addArguments('disable-gpu');
     options.addArguments('no-sandbox');
     options.addArguments('disable-dev-shm-usage');
